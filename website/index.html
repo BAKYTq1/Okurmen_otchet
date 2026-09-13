@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Отзывы о менторах</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <div class="page-wrapper">
+
+    <!-- Шапка -->
+    <header class="header">
+      <div class="header__logo">
+        <span class="logo-icon">🎓</span>
+        <span class="logo-text">OkurmenOpros</span>
+      </div>
+      <p class="header__subtitle">Анонимные отзывы студентов о менторах</p>
+    </header>
+
+    <!-- Карточка формы -->
+    <main class="card" id="formCard">
+
+      <div class="card__title">
+        <h1>Оставить отзыв</h1>
+        <p>Ваш отзыв поможет улучшить качество обучения. Он будет отправлен анонимно.</p>
+      </div>
+
+      <form id="reviewForm" novalidate>
+
+        <!-- Шаг 1: ФИО -->
+        <div class="form-group">
+          <label for="fullName">
+            <span class="label-icon">👤</span> Ваше ФИО
+          </label>
+          <input
+            type="text"
+            id="fullName"
+            name="fullName"
+            placeholder="Алибеков Нурлан Серикович"
+            autocomplete="name"
+          />
+          <span class="field-error" id="fullNameError"></span>
+        </div>
+
+        <!-- Шаг 2: Выбор ментора -->
+        <div class="form-group">
+          <label for="mentor">
+            <span class="label-icon">👨‍🏫</span> Выберите куратора или ментора
+          </label>
+          <div class="select-wrapper">
+            <select id="mentor" name="mentor">
+              <option value="" disabled selected>— Выберите куратора или ментора —</option>
+              <optgroup label="👨‍🏫 Менторы">
+                <option value="Ментор: Мирбек Атабеков">Мирбек Атабеков</option>
+                <option value="Ментор: Сайнаев Бакыт">Сайнаев Бакыт</option>
+                <option value="Ментор: Дастан">Дастан</option>
+                <option value="Ментор: Даниел">Даниел</option>
+                <option value="Ментор: Гульназ">Гульназ</option>
+                <option value="Ментор: Бексултан">Бексултан</option>
+              </optgroup>
+              <optgroup label="🧑‍💼 Кураторы">
+                <option value="Куратор: Сезим">Сезим</option>
+                <option value="Куратор: Айзат">Айзат</option>
+              </optgroup>
+            </select>
+            <span class="select-arrow">▾</span>
+          </div>
+          <span class="field-error" id="mentorError"></span>
+        </div>
+
+        <!-- Шаг 3: Оценка звёздами -->
+        <div class="form-group">
+          <label>
+            <span class="label-icon">⭐</span> Оценка ментора
+          </label>
+          <div class="star-rating" id="starRating" role="group" aria-label="Оценка">
+            <button type="button" class="star" data-value="1" aria-label="1 звезда">★</button>
+            <button type="button" class="star" data-value="2" aria-label="2 звезды">★</button>
+            <button type="button" class="star" data-value="3" aria-label="3 звезды">★</button>
+            <button type="button" class="star" data-value="4" aria-label="4 звезды">★</button>
+            <button type="button" class="star" data-value="5" aria-label="5 звёзд">★</button>
+          </div>
+          <span class="rating-label" id="ratingLabel">Нажмите на звезду</span>
+          <span class="field-error" id="ratingError"></span>
+          <input type="hidden" id="ratingValue" name="rating" value="" />
+        </div>
+
+        <!-- Шаг 4: Текст отзыва -->
+        <div class="form-group">
+          <label for="reviewText">
+            <span class="label-icon">💬</span> Ваш отзыв
+          </label>
+          <textarea
+            id="reviewText"
+            name="reviewText"
+            rows="5"
+            placeholder="Напишите, что понравилось, что можно улучшить, пожелания ментору..."
+          ></textarea>
+          <div class="char-counter"><span id="charCount">0</span> / 1000</div>
+          <span class="field-error" id="reviewError"></span>
+        </div>
+
+        <!-- Кнопка отправки -->
+        <button type="submit" class="btn-submit" id="submitBtn">
+          <span class="btn-text">Отправить отзыв</span>
+          <span class="btn-spinner" id="btnSpinner" hidden>⏳</span>
+        </button>
+
+      </form>
+    </main>
+
+    <!-- Экран успеха -->
+    <div class="success-screen" id="successScreen" hidden>
+      <div class="success-icon">✅</div>
+      <h2>Отзыв отправлен!</h2>
+      <p>Спасибо! Ваш отзыв получен и будет учтён при оценке работы ментора.</p>
+      <button class="btn-again" id="btnAgain">Оставить ещё один отзыв</button>
+    </div>
+
+    <footer class="footer">
+      <p>Отзывы анонимны • Данные передаются напрямую в систему оценки</p>
+    </footer>
+
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
