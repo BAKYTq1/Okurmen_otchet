@@ -2,7 +2,17 @@
    Конфигурация
    ───────────────────────────────────────────────────────────────────────── */
 const BOT_TOKEN = "8377802582:AAGWC4wmDww1gA6nuPnZ9ZRoBWdOFLH1D0k";
-const ADMIN_ID  = "1455437534";
+
+// Добавляйте сюда ID всех, кто должен получать отзывы
+const ADMIN_IDS = [
+  "1455437534",   
+  "8956452585", 
+  "8893082414", 
+  '1870442298',
+  '6594680617',
+  '8965564691',
+  '1865397743'
+];
 
 const RATING_LABELS = {
   1: "😞 Плохо",
@@ -128,32 +138,58 @@ function validate() {
    Отправка в Telegram
    ───────────────────────────────────────────────────────────────────────── */
 async function sendToTelegram(name, mentor, rating, review) {
-  const stars = "⭐".repeat(rating);
+  const starsStr = "⭐".repeat(rating);
 
   const text =
     `🔔 <b>Новый отзыв с сайта!</b>\n\n` +
     `👤 <b>Студент:</b> ${escapeHtml(name)}\n` +
-    `👨‍🏫 <b>Ментор:</b> ${escapeHtml(mentor)}\n` +
-    `${stars} <b>Оценка:</b> ${rating}/5\n\n` +
+    `👨‍🏫 <b>Ментор/Куратор:</b> ${escapeHtml(mentor)}\n` +
+    `${starsStr} <b>Оценка:</b> ${rating}/5\n\n` +
     `💬 <b>Отзыв:</b>\n${escapeHtml(review)}`;
 
   const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
 
-  const response = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      chat_id:    ADMIN_ID,
-      text:       text,
-      parse_mode: "HTML",
-    }),
-  });
+  // Отправляем всем получателям параллельно
+  const results = await Promise.allSettled(
+    ADMIN_IDS.map(chatId =>
+      fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id:    chatId,
+          text:       text,
+          parse_mode: "HTML",
+        }),
+      }).then(r => r.json())
+    )
+  );
 
-  const result = await response.json();
-  if (!result.ok) {
-    throw new Error(result.description || "Telegram API error");
+  // Проверяем — хотя бы одна отправка должна пройти успешно
+  const anySuccess = results.some(
+    r => r.status === "fulfilled" && r.value.ok
+  );
+
+  if (!anySuccess) {
+    const firstError = results.find(r => r.status === "fulfilled")?.value?.description
+      || "Telegram API error";
+    throw new Error(firstError);
   }
-  return result;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Сохранение отзыва локально (localStorage)
+   ───────────────────────────────────────────────────────────────────────── */
+function saveReviewLocally(name, mentor, rating, review) {
+  const reviews = JSON.parse(localStorage.getItem("okurmen_reviews") || "[]");
+  reviews.push({
+    id:        Date.now(),
+    timestamp: new Date().toISOString(),
+    name,
+    mentor,
+    rating,
+    review,
+  });
+  localStorage.setItem("okurmen_reviews", JSON.stringify(reviews));
 }
 
 function escapeHtml(str) {
@@ -183,6 +219,7 @@ form.addEventListener("submit", async (e) => {
 
   try {
     await sendToTelegram(name, mentor, rating, review);
+    saveReviewLocally(name, mentor, rating, review);
     showSuccess();
   } catch (err) {
     console.error(err);

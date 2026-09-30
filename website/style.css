@@ -75,6 +75,22 @@ body {
   font-size: .9rem;
 }
 
+.report-link {
+  display: inline-block;
+  margin-top: 10px;
+  font-size: .82rem;
+  color: var(--primary);
+  text-decoration: none;
+  border: 1px solid var(--primary);
+  padding: 4px 14px;
+  border-radius: 20px;
+  transition: background .2s, color .2s;
+}
+.report-link:hover {
+  background: var(--primary);
+  color: #fff;
+}
+
 /* ── Card ─────────────────────────────────────────────────────────────────── */
 .card {
   background: var(--bg-card);

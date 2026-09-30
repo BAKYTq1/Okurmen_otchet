@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Отчёт по отзывам — OkurmenOpros</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* ── Дополнительные стили для страницы отчёта ── */
+    .report-grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .mentor-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px 24px;
+      transition: border-color .2s;
+    }
+    .mentor-card:hover { border-color: var(--primary); }
+
+    .mentor-card__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .mentor-name {
+      font-size: 1.05rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .badge {
+      font-size: .7rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+    .badge--mentor  { background: rgba(91,108,247,.2);  color: #a5b4fc; }
+    .badge--curator { background: rgba(34,197,94,.15);  color: #86efac; }
+
+    .mentor-stats {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .stat-block {
+      text-align: center;
+    }
+    .stat-block__value {
+      font-size: 1.5rem;
+      font-weight: 800;
+      line-height: 1;
+      color: var(--primary);
+    }
+    .stat-block__label {
+      font-size: .72rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* Полоска рейтинга */
+    .rating-bar-wrap {
+      flex: 1;
+      min-width: 120px;
+    }
+    .rating-bar-track {
+      background: var(--bg-input);
+      border-radius: 20px;
+      height: 8px;
+      overflow: hidden;
+    }
+    .rating-bar-fill {
+      height: 100%;
+      border-radius: 20px;
+      background: linear-gradient(90deg, #fbbf24, #f59e0b);
+      transition: width .6s ease;
+    }
+    .rating-bar-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: .75rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* Распределение звёзд */
+    .stars-dist {
+      margin-top: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .stars-dist__row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: .82rem;
+    }
+    .stars-dist__label { width: 24px; color: var(--text-muted); text-align: right; flex-shrink: 0; }
+    .stars-dist__bar-wrap { flex: 1; background: var(--bg-input); border-radius: 20px; height: 6px; overflow: hidden; }
+    .stars-dist__bar-fill { height: 100%; border-radius: 20px; background: #fbbf24; transition: width .6s ease; }
+    .stars-dist__count { width: 24px; color: var(--text-muted); font-size: .75rem; flex-shrink: 0; }
+
+    /* Сводка вверху */
+    .summary-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .summary-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      text-align: center;
+    }
+    .summary-card__value {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--primary);
+    }
+    .summary-card__label {
+      font-size: .78rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* Фильтр */
+    .filter-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+    .filter-btn {
+      background: var(--bg-input);
+      border: 1.5px solid var(--border);
+      color: var(--text-muted);
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: .85rem;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .filter-btn.active,
+    .filter-btn:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+      background: rgba(91,108,247,.1);
+    }
+
+    /* Кнопка отправки в TG */
+    .btn-tg {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, #229ed9, #1a7fbf);
+      color: #fff;
+      font-size: .88rem;
+      font-weight: 600;
+      padding: 10px 20px;
+      border: none;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: opacity .2s, transform .2s;
+      box-shadow: 0 4px 14px rgba(34,158,217,.35);
+    }
+    .btn-tg:hover { opacity: .9; transform: translateY(-1px); }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 48px 24px;
+      color: var(--text-muted);
+    }
+    .empty-state__icon { font-size: 3rem; margin-bottom: 12px; }
+    .empty-state a { color: var(--primary); text-decoration: none; }
+    .empty-state a:hover { text-decoration: underline; }
+
+    /* Последние отзывы */
+    .reviews-list { margin-top: 14px; }
+    .review-item {
+      border-top: 1px solid var(--border);
+      padding: 10px 0 6px;
+      font-size: .83rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    .review-item__text { color: var(--text); margin-top: 2px; }
+    .review-item__meta { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4px; }
+    .review-toggle {
+      background: none;
+      border: none;
+      color: var(--primary);
+      font-size: .78rem;
+      cursor: pointer;
+      padding: 4px 0;
+    }
+    .review-toggle:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="page-wrapper" style="max-width:700px">
+
+    <header class="header">
+      <div class="header__logo">
+        <span class="logo-icon">📊</span>
+        <span class="logo-text">Отчёт по отзывам</span>
+      </div>
+      <p class="header__subtitle">Статистика оценок менторов и кураторов</p>
+    </header>
+
+    <div id="app">
+      <!-- Рендерится через JS -->
+    </div>
+
+    <footer class="footer" style="margin-top:32px">
+      <p>Данные хранятся в этом браузере • <a href="index.html" style="color:var(--primary);text-decoration:none">← Оставить отзыв</a></p>
+    </footer>
+  </div>
+
+  <script>
+    /* ── Конфигурация ── */
+    const BOT_TOKEN = "8377802582:AAGWC4wmDww1gA6nuPnZ9ZRoBWdOFLH1D0k";
+    const ADMIN_IDS = [
+      "1455437534",
+      "8956452585",
+      "8893082414",
+    ];
+
+    /* ── Загрузка данных ── */
+    function loadReviews() {
+      return JSON.parse(localStorage.getItem("okurmen_reviews") || "[]");
+    }
+
+    /* ── Вычисление статистики ── */
+    function buildStats(reviews, filter = "all") {
+      const filtered = filter === "all" ? reviews
+        : reviews.filter(r => r.mentor.startsWith(filter === "mentor" ? "Ментор:" : "Куратор:"));
+
+      const map = {};
+      for (const r of filtered) {
+        if (!map[r.mentor]) map[r.mentor] = { name: r.mentor, ratings: [], reviews: [] };
+        map[r.mentor].ratings.push(r.rating);
+        map[r.mentor].reviews.push(r);
+      }
+
+      return Object.values(map).sort((a, b) => {
+        const avgA = a.ratings.reduce((s, x) => s + x, 0) / a.ratings.length;
+        const avgB = b.ratings.reduce((s, x) => s + x, 0) / b.ratings.length;
+        return avgB - avgA;
+      });
+    }
+
+    /* ── Форматирование даты ── */
+    function fmtDate(iso) {
+      const d = new Date(iso);
+      return d.toLocaleDateString("ru-RU", { day:"2-digit", month:"2-digit", year:"2-digit" })
+        + " " + d.toLocaleTimeString("ru-RU", { hour:"2-digit", minute:"2-digit" });
+    }
+
+    /* ── Отправка отчёта в Telegram ── */
+    async function sendReportToTelegram(stats, total) {
+      if (total === 0) { alert("Нет данных для отправки"); return; }
+
+      let text = `📊 <b>Отчёт по отзывам</b>\n`;
+      text += `📅 ${new Date().toLocaleDateString("ru-RU")} • Всего отзывов: <b>${total}</b>\n\n`;
+
+      for (const s of stats) {
+        const avg  = (s.ratings.reduce((a,b)=>a+b,0) / s.ratings.length).toFixed(1);
+        const stars = "⭐".repeat(Math.round(parseFloat(avg)));
+        const type  = s.name.startsWith("Ментор:") ? "👨‍🏫" : "🧑‍💼";
+        const cleanName = s.name.replace(/^(Ментор|Куратор):\s*/, "");
+        text += `${type} <b>${cleanName}</b>\n`;
+        text += `   Отзывов: ${s.ratings.length} | Оценка: ${stars} ${avg}/5\n\n`;
+      }
+
+      const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
+      await Promise.allSettled(
+        ADMIN_IDS.map(id =>
+          fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ chat_id: id, text, parse_mode: "HTML" }),
+          })
+        )
+      );
+      alert("✅ Отчёт отправлен в Telegram!");
+    }
+
+    /* ── Рендер ── */
+    let currentFilter = "all";
+
+    function render() {
+      const reviews = loadReviews();
+      const stats   = buildStats(reviews, currentFilter);
+      const app     = document.getElementById("app");
+
+      if (reviews.length === 0) {
+        app.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state__icon">📭</div>
+            <p>Отзывов пока нет.<br>
+            <a href="index.html">Оставьте первый отзыв</a></p>
+          </div>`;
+        return;
+      }
+
+      /* Общая сводка */
+      const totalReviews = reviews.length;
+      const allRatings   = reviews.map(r => r.rating);
+      const globalAvg    = (allRatings.reduce((a,b)=>a+b,0) / allRatings.length).toFixed(1);
+      const mentorCount  = new Set(reviews.map(r=>r.mentor)).size;
+
+      let html = `
+        <div class="summary-row">
+          <div class="summary-card">
+            <div class="summary-card__value">${totalReviews}</div>
+            <div class="summary-card__label">Всего отзывов</div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-card__value">${globalAvg}⭐</div>
+            <div class="summary-card__label">Средняя оценка</div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-card__value">${mentorCount}</div>
+            <div class="summary-card__label">Менторов / кураторов</div>
+          </div>
+        </div>
+
+        <div class="top-actions">
+          <div class="filter-row" style="margin:0">
+            <button class="filter-btn ${currentFilter==='all'?'active':''}"    onclick="setFilter('all')">Все</button>
+            <button class="filter-btn ${currentFilter==='mentor'?'active':''}" onclick="setFilter('mentor')">👨‍🏫 Менторы</button>
+            <button class="filter-btn ${currentFilter==='curator'?'active':''}" onclick="setFilter('curator')">🧑‍💼 Кураторы</button>
+          </div>
+          <button class="btn-tg" onclick="sendReport()">✈️ Отправить в Telegram</button>
+        </div>
+
+        <div class="report-grid">`;
+
+      for (const s of stats) {
+        const count   = s.ratings.length;
+        const avg     = s.ratings.reduce((a,b)=>a+b,0) / count;
+        const avgFmt  = avg.toFixed(1);
+        const pct     = (avg / 5 * 100).toFixed(0);
+        const isMentor = s.name.startsWith("Ментор:");
+        const cleanName = s.name.replace(/^(Ментор|Куратор):\s*/, "");
+        const badgeClass = isMentor ? "badge--mentor" : "badge--curator";
+        const badgeText  = isMentor ? "Ментор" : "Куратор";
+
+        /* Распределение по звёздам */
+        const dist = [1,2,3,4,5].map(v => s.ratings.filter(r=>r===v).length);
+        const distRows = [5,4,3,2,1].map(v => {
+          const cnt = dist[v-1];
+          const w   = count > 0 ? (cnt/count*100).toFixed(0) : 0;
+          return `<div class="stars-dist__row">
+            <span class="stars-dist__label">${v}★</span>
+            <div class="stars-dist__bar-wrap">
+              <div class="stars-dist__bar-fill" style="width:${w}%"></div>
+            </div>
+            <span class="stars-dist__count">${cnt}</span>
+          </div>`;
+        }).join("");
+
+        /* Последние 2 отзыва */
+        const recent = [...s.reviews].reverse().slice(0, 2);
+        const reviewsHtml = recent.map(r => `
+          <div class="review-item">
+            <div class="review-item__meta">
+              <span>⭐ ${"★".repeat(r.rating)}${"☆".repeat(5-r.rating)}</span>
+              <span>${fmtDate(r.timestamp)}</span>
+            </div>
+            <div class="review-item__text">${r.review.slice(0,120)}${r.review.length>120?"…":""}</div>
+          </div>`).join("");
+
+        const hasMore = s.reviews.length > 2;
+
+        html += `
+          <div class="mentor-card">
+            <div class="mentor-card__header">
+              <div class="mentor-name">
+                ${isMentor ? "👨‍🏫" : "🧑‍💼"}
+                ${cleanName}
+                <span class="badge ${badgeClass}">${badgeText}</span>
+              </div>
+              <div class="mentor-stats">
+                <div class="stat-block">
+                  <div class="stat-block__value">${count}</div>
+                  <div class="stat-block__label">отзывов</div>
+                </div>
+                <div class="stat-block">
+                  <div class="stat-block__value">${avgFmt}</div>
+                  <div class="stat-block__label">из 5 ⭐</div>
+                </div>
+                <div class="rating-bar-wrap">
+                  <div class="rating-bar-track">
+                    <div class="rating-bar-fill" style="width:${pct}%"></div>
+                  </div>
+                  <div class="rating-bar-label">
+                    <span>0</span><span>${avgFmt}/5</span><span>5</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="stars-dist">${distRows}</div>
+
+            ${reviewsHtml ? `
+              <div class="reviews-list" id="reviews-${s.name.replace(/\W/g,'_')}_short">
+                ${reviewsHtml}
+                ${hasMore ? `<button class="review-toggle" onclick="toggleReviews('${s.name.replace(/\W/g,'_')}', ${JSON.stringify(s.reviews).replace(/"/g,'&quot;')})">Показать все ${s.reviews.length} отзывов ▾</button>` : ""}
+              </div>` : ""}
+          </div>`;
+      }
+
+      html += `</div>`;
+      app.innerHTML = html;
+    }
+
+    function setFilter(f) {
+      currentFilter = f;
+      render();
+    }
+
+    function toggleReviews(key, reviews) {
+      const container = document.getElementById(`reviews-${key}_short`);
+      const allHtml = [...reviews].reverse().map(r => `
+        <div class="review-item">
+          <div class="review-item__meta">
+            <span>⭐ ${"★".repeat(r.rating)}${"☆".repeat(5-r.rating)}</span>
+            <span>${fmtDate(r.timestamp)}</span>
+          </div>
+          <div class="review-item__text">${r.review}</div>
+        </div>`).join("");
+      container.innerHTML = allHtml + `<button class="review-toggle" onclick="render()">Свернуть ▴</button>`;
+    }
+
+    function sendReport() {
+      const reviews = loadReviews();
+      const stats   = buildStats(reviews, "all");
+      sendReportToTelegram(stats, reviews.length);
+    }
+
+    render();
+  </script>
+</body>
+</html>
